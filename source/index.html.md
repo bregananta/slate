@@ -1,11 +1,9 @@
 ---
-title: API Reference
+title: AgraTek Switching API Reference
 
 language_tabs: # must be one of https://git.io/vQNgJ
-  - shell
-  - ruby
   - python
-  - javascript
+  - php
 
 toc_footers:
   - <a href='#'>Sign Up for a Developer Key</a>
@@ -19,157 +17,153 @@ search: true
 
 # Introduction
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+Welcome to AgraTek Switching API Reference.
 
-We have language bindings in Shell, Ruby, Python, and JavaScript! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
+We have language bindings in Python, and PHP! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
 
-This example API documentation page was created with [Slate](https://github.com/lord/slate). Feel free to edit it and use it as a base for your own API's documentation.
+System specifications:
+
+1. The format used is ```json-rpc 2.0```
+2. Access method with ```post``` request
+3. ```method``` is a method that will be accessed
+
+* Sandbox: [http://dev.agratek.id/api/merchant](http://dev.agratek.id/api/merchant)
+* Production: [http://agratek.id/api/merchant](http://agratek.id/api/merchant)
 
 # Authentication
 
-> To authorize, use this code:
+> use following code to generate your signature:
 
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
+```php
+<?php
+function json_rpc_header($userid, $password){
+  date_default_timezone_set('UTC');
+  $inttime = strval(time()-strtotime('1970-01-01 00:00:00'));
+  $value = $userid . $inttime;
+  $key = $password;
+  $signature = hash_hmac('sha256', $value, $key, true);
+  $signature64 = base64_encode($signature);
+  headers = {
+    'userid':$userid,
+    'signature':$ignature64,
+    'key':$inttime
+  }
+  return headers
+}
+?>
 ```
 
 ```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
+def json_rpc_header(userid, password):
+  utc_date = datetime.utcnow()
+  start_date = datetime.strptime('19700101 000000', '%Y%m%d %H%M%S')
+  tot_seconds = int((utc_date-start_date).total_seconds())
+  value = "%s&%s" % (str(userid),str(tot_seconds))
+  key = str(password)
+  signature = hmac.new(key, msg=value, digestmod=hashlib.sha256).digest()
+  signature64 = base64.encodestring(signature).replace('\n', '')
+  headers = {
+    'userid':userid,
+    'signature':signature64,
+    'key':inttime
+    }
+  return headers
 ```
 
-```shell
-# With shell, you can just pass the correct header with each request
-curl "api_endpoint_here"
-  -H "Authorization: meowmeowmeow"
-```
+Every HTTP POST request must contain following HTTP Header:
 
-```javascript
-const kittn = require('kittn');
+header | sample data
+----- | -----------
+```userid``` | 000121
+```signature``` | wtl7nDjOGWqVFS/oESUbEoOyQWyJItLIFWMZvASYpmQ=
+```key``` | 1424087283
 
-let api = kittn.authorize('meowmeowmeow');
-```
+```userid``` is Merchant's user ID.
 
-> Make sure to replace `meowmeowmeow` with your API key.
+```signature``` is a combination of merchant's ```userid``` and ```password```, encrypted using **HMAC-256** encryption. This is to improve security.
 
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
+```key``` is current timestamp in UNIX format.
 
 <aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
+You must generate your signature to be include in your request header. On the right side is example script to generate a signature.
 </aside>
 
-# Kittens
+# IP Whitelist
 
-## Get All Kittens
+Any incoming request to AgraTek will be validated by IP address, AgraTek can accept one or more IP address to be whitelisted.
 
-```ruby
-require 'kittn'
+# Send Your Request
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
-```
-
-```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
-```
-
-```shell
-curl "http://example.com/api/kittens"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
-```
-
-> The above command returns JSON structured like this:
+> send your request in json format:
 
 ```json
-[
-  {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
-  },
-  {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
-  }
-]
+{
+  "jsonrpc": "2.0",
+  "method": "set_antrian",
+  "params": data,
+  "id":1
+}
 ```
 
-This endpoint retrieves all kittens.
+All request must be send in ```http post``` using ```json-rpc 2.0``` format.
 
-### HTTP Request
 
-`GET http://example.com/api/kittens`
+## Header
 
-### Query Parameters
+> header in json format:
 
-Parameter | Default | Description
---------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
-
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
-</aside>
-
-## Get a Specific Kitten
-
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get(2)
+```json
+headers = {
+  "userid": "admin",
+  "key": 1442495331,
+  "signature": "ix/9W9AV38NbOBxPMxMRUl8moiYmnC1nUlbou0WmrZ8="
+}
 ```
+
+Sample of http post request header for:
+
+* userid      = admin
+* password    = admin
+* timestamp   = '1442495331'
+* signature64 = 'ix/9W9AV38NbOBxPMxMRUl8moiYmnC1nUlbou0WmrZ8='
+
+
+## Data
 
 ```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get(2)
+record        = [
+    {'kode':'001'},
+    {'kode':'002'}
+  ]
+data          = {"data": record}
+headers       = json_rpc_header('admin','$2a$10$EjDrW6Fk0g5')
+requests      = {
+  "jsonrpc": "2.0",
+  "method": "set_antrian",
+  "params": data,
+  "id":1
+}
+jsondata      = json.dumps(data, ensure_ascii=False)
+results       = requests.post(rpc_url, data=jsondata, headers=headers)
+dict_results  = json.loads(rows.text)
 ```
 
-```shell
-curl "http://example.com/api/kittens/2"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
+```php
+<?php
+?>
 ```
 
 > The above command returns JSON structured like this:
 
 ```json
 {
-  "id": 2,
-  "name": "Max",
-  "breed": "unknown",
-  "fluffiness": 5,
-  "cuteness": 10
+  "jsonrpc":"2.0",
+  "method":"get_todo_detail",
+  "params":{
+    "token":"1234567890123457",
+    "data":[{"kode": "001"}]
+  },
+  "id": 19
 }
 ```
 
